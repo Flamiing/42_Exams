@@ -17,16 +17,16 @@ size_t	ft_strlen_x(char *str, char limit)
 	return (len);
 }
 
-int	ft_find_newline(char *buffer)
+int	ft_find_newline(char *stash)
 {
 	size_t	count;
 
-	if (!buffer)
+	if (!stash)
 		return (0);
 	count = 0;
-	while (buffer[count])
+	while (stash[count])
 	{
-		if (buffer[count] == '\n')
+		if (stash[count] == '\n')
 			return (1);
 		count++;
 	}
@@ -56,11 +56,9 @@ char	*ft_strcpy_x(char *dest, char *src, char limit)
 char *ft_fill_stash(char *stash, char *buffer)
 {
 	size_t	size;
-	size_t	count;
 	char	*new_stash;
 
 	size = ft_strlen_x(stash, '\0');
-	count = 0;
 	if (size == 0)
 	{
 		new_stash = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
@@ -105,10 +103,9 @@ char	*ft_getline(char *stash)
 	char	*line;
 	size_t	size;
 
-	size = 0;
+	size = ft_strlen_x(stash, '\n');
 	if (ft_find_newline(stash))
 	{
-		size = ft_strlen_x(stash, '\n');
 		line = (char *)malloc((size + 2) * sizeof(char));
 		if (!line)
 			return (NULL);
@@ -116,7 +113,6 @@ char	*ft_getline(char *stash)
 	}
 	else
 	{
-		size = ft_strlen_x(stash, '\0');
 		line = (char *)malloc((size + 1) * sizeof(char));
 		if (!line)
 			return (NULL);
