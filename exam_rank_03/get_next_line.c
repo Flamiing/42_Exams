@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 #ifndef BUFFER_SIZE
-# define BUFFER_SIZE 10
+# define BUFFER_SIZE 42
 #endif
 
 size_t	ft_strlen_x(char *str, char limit)
