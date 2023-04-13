@@ -24,7 +24,10 @@ int ft_putstr(char *str)
     int len;
     
     if (!str)
-        return (ft_putstr("(null)"));
+    {
+        write(1, "(null)", 6);
+        return (6);
+    }
     len = ft_strlen(str);
     write(1, str, len);
     return (len);
@@ -36,7 +39,7 @@ int ft_count_digits(int nbr)
 
     count = 0;
     if (nbr == -2147483648)
-        return (11);
+        return (10);
     if (nbr == 0)
         return (1);
     if (nbr < 0)
@@ -49,35 +52,29 @@ int ft_count_digits(int nbr)
     return (count);
 }
 
-void	ft_putnbr(int nbr)
+static int  ft_putnbr(int nbr)
 {
 	if (nbr == -2147483648)
 	{
 		write(1, "-2147483648", 11);
-		return ;
+		return (11);
 	}
-	else if (nbr < 0)
+    count = 0;
+	if (nbr < 0)
 	{
-		nbr *= -1;
 		ft_putchar('-');
-		ft_putnbr(nbr);
+		nbr *= -1;
+        count++;
 	}
-	else if (nbr < 10)
-		ft_putchar(nbr + 48);
+    count += ft_count_digits(nbr);
+	if (nbr < 10)
+		ft_putchar(nbr + '0');
 	else if (nbr > 9)
 	{
 		ft_putnbr(nbr / 10);
 		ft_putnbr(nbr % 10);
 	}
-}
-
-int	ft_print_nbr(int nbr)
-{
-	int	count;
-
-	count = ft_count_digits(nbr);
-	ft_putnbr(nbr);
-	return (count);
+    return (count)
 }
 
 int ft_puthexa(unsigned int nbr)
@@ -98,9 +95,8 @@ int ft_puthexa(unsigned int nbr)
         hexa[pos] = "0123456789abcdef"[nbr % 16];
         nbr /= 16;
         count++;
-        pos++;
     }
-    pos--;
+    pos = count - 1;
     while (pos >= 0)
     {
         ft_putchar(hexa[pos]);
@@ -117,7 +113,7 @@ int ft_print_format(char format, va_list args)
     if (format == 's')
         count += ft_putstr(va_arg(args, char *));
     if (format == 'd')
-		count += ft_print_nbr(va_arg(args, int));
+		count += ft_putnbr(va_arg(args, int));
     else if (format == 'x')
         count += ft_puthexa(va_arg(args, unsigned int));
     return (count);
