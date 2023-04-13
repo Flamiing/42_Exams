@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <stdarg.h>
 
-int ft_strlen(char *str)
+static int ft_strlen(char *str)
 {
     int count;
 
@@ -13,13 +13,13 @@ int ft_strlen(char *str)
     return (count);
 }
 
-int ft_putchar(char c)
+static int ft_putchar(int c)
 {
     write(1, &c, 1);
     return (1);
 }
 
-int ft_putstr(char *str)
+static int ft_putstr(char *str)
 {
     int len;
     
@@ -33,7 +33,7 @@ int ft_putstr(char *str)
     return (len);
 }
 
-int ft_count_digits(int nbr)
+static int ft_count_digits(int nbr)
 {
     int count;
 
@@ -76,10 +76,10 @@ static int  ft_putnbr(int nbr)
 		ft_putnbr(nbr / 10);
 		ft_putnbr(nbr % 10);
 	}
-    return (count)
+    return (count);
 }
 
-int ft_puthexa(unsigned int nbr)
+static int ft_puthexa(unsigned int nbr)
 {
     int count;
     int pos;
@@ -90,11 +90,11 @@ int ft_puthexa(unsigned int nbr)
     if (nbr == 0)
     {
         ft_putchar('0');
-        count++;
+        return (1);
     }
-    while  (nbr != 0)
+    while  (nbr > 0)
     {
-        hexa[pos] = "0123456789abcdef"[nbr % 16];
+        hexa[count] = "0123456789abcdef"[nbr % 16];
         nbr /= 16;
         count++;
     }
@@ -107,7 +107,7 @@ int ft_puthexa(unsigned int nbr)
     return (count);
 }
 
-int ft_print_format(char format, va_list args)
+static int ft_print_format(char format, va_list args)
 {
     int count;
 
