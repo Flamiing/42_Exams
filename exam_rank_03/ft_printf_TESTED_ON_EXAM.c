@@ -54,6 +54,8 @@ int ft_count_digits(int nbr)
 
 static int  ft_putnbr(int nbr)
 {
+    int count;
+    
 	if (nbr == -2147483648)
 	{
 		write(1, "-2147483648", 11);
@@ -146,4 +148,10 @@ int ft_printf(const char *format, ... )
     }
     va_end(args);
     return (count);
+}
+
+int main(void)
+{
+    ft_printf("%s for %d is %x\n", "Hexadecimal", 42, 42);
+    return (0);
 }
