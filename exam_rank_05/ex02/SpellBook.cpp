@@ -19,7 +19,7 @@ SpellBook& SpellBook::operator=(const SpellBook& other) { (void)other; return *t
 void SpellBook::learnSpell(ASpell* spell)
 {
 	if (spell)
-		this->spells[spell->getName()] = spell;
+		this->spells[spell->getName()] = spell->clone();
 }
 
 void SpellBook::forgetSpell(const std::string& spell)
