@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/09 02:11:18 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/09 03:08:34 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,12 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
+
+typedef struct s_client
+{
+	int socket;
+	int id;
+} t_client;
 
 static void fatalError(void)
 {
@@ -45,6 +51,8 @@ int main(int argc, char ** argv)
 	// Clients, fd sets and buffer declarations:
 	int clientSockets[128];
 	int next_id = 0;
+	int connectedClients = 0;
+	int clients[132];
 	fd_set activeSockets, readySockets;
 	char buffer[200000];
 	char msgBuffer[200000];
@@ -84,6 +92,7 @@ int main(int argc, char ** argv)
 			if (FD_ISSET(socketId, &readySockets))
 			{
 				// New client connection: 
+				int currentClient = socketId;
 				if (socketId == serverSocket)
 				{
 					int clientSocket = accept(serverSocket, NULL, NULL); // Accept new client connection
@@ -94,8 +103,10 @@ int main(int argc, char ** argv)
 					maxSocket = (clientSocket > maxSocket) ? clientSocket : maxSocket; // Update the max socket descriptor
 
 					sprintf(msgBuffer, "server: client %d just arrived\n", next_id);
-					clientSockets[next_id++] = clientSocket; // Add client to the list of clients		
-					broadcast(clientSockets, clientSocket, next_id, msgBuffer); // Broadcast the msg to all clients
+					clients[clientSocket] = next_id;
+					clientSockets[next_id++] = clientSocket; // Add client to the list of clients
+					connectedClients++;
+					broadcast(clientSockets, clientSocket, connectedClients, msgBuffer); // Broadcast the msg to all clients
 				}
 				else
 				{
@@ -104,16 +115,17 @@ int main(int argc, char ** argv)
 					if (bytesRead <= 0)
 					{
 						// Client disconnected:
-						sprintf(msgBuffer, "server: client %d just left\n", socketId - 4); // Prepare info for the rest of the clients
-						broadcast(clientSockets, socketId, next_id, msgBuffer); // Broadcast msg to the clients
+						sprintf(msgBuffer, "server: client %d just left\n", clients[currentClient]); // Prepare info for the rest of the clients
+						broadcast(clientSockets, socketId, connectedClients, msgBuffer); // Broadcast msg to the clients
 						close(socketId); // Close fd of the client disconnected
 						FD_CLR(socketId, &activeSockets); // Removes the client from the set of active clients
+						connectedClients--;
 					}
 					else
 					{
 						buffer[bytesRead] = '\0';
-						sprintf(msgBuffer, "client: %d: %s", socketId - 4, buffer);
-						broadcast(clientSockets, socketId, next_id, msgBuffer);
+						sprintf(msgBuffer, "client: %d: %s", clients[currentClient], buffer);
+						broadcast(clientSockets, socketId, connectedClients, msgBuffer);
 					}
 				}
 			}
