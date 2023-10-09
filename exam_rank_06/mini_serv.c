@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/09 03:15:06 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/09 17:55:29 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,10 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 
-static void fatalError(void)
+static void fatalError(int socket)
 {
+	if (socket != -1)
+		close(socket);
 	write(2, "Fatal error\n", 12);
 	exit(1);
 }
@@ -54,7 +56,7 @@ int main(int argc, char ** argv)
 	// Create server socket and setup address:
 	int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket < 0)
-		fatalError();
+		fatalError(-1);
 	struct sockaddr_in serverAddress = {0}; // Structure to hold server address
 	serverAddress.sin_family = AF_INET; // Address familly to IPv4
 	serverAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // Set ip address to localhost
@@ -62,11 +64,11 @@ int main(int argc, char ** argv)
 
 	// Bind server socket to address:
 	if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
-		fatalError();
+		fatalError(serverSocket);
 
 	// Listens to upcomming connections:
 	if (listen(serverSocket, 128) < 0)
-		fatalError();
+		fatalError(serverSocket);
 	
 	// Initialise the active sockets set:
 	FD_ZERO(&activeSockets); // Clear set of active sockets
@@ -78,7 +80,7 @@ int main(int argc, char ** argv)
 		// Wait for activity in the sockets:
 		readySockets = activeSockets;
 		if (select(maxSocket + 1, &readySockets, NULL, NULL, NULL) < 0)
-			fatalError();
+			fatalError(-1);
 
 		// Check each socket for activity:
 		for (int socketId = 0; socketId <= maxSocket; socketId++)
@@ -91,7 +93,7 @@ int main(int argc, char ** argv)
 				{
 					int clientSocket = accept(serverSocket, NULL, NULL); // Accept new client connection
 					if (clientSocket < 0)
-						fatalError();
+						fatalError(-1);
 					
 					FD_SET(clientSocket, &activeSockets); // Add new client to the active set of sockets
 					maxSocket = (clientSocket > maxSocket) ? clientSocket : maxSocket; // Update the max socket descriptor
