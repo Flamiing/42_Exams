@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/09 03:08:34 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/09 03:15:06 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,6 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
-
-typedef struct s_client
-{
-	int socket;
-	int id;
-} t_client;
 
 static void fatalError(void)
 {
