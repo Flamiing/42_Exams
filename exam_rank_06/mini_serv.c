@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/13 03:12:16 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/13 03:26:49 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ static void broadcast(int *clientSockets, int currentClient, int size, char *buf
 int main(int argc, char ** argv)
 {
 	// Manage wrong number of arguments:
-	if (argc != 2)
+	if (argc == 1)
 	{
 		write(2, "Wrong number of arguments\n", 26);
 		exit(1);
