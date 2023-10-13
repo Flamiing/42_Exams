@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/13 03:26:49 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/13 14:29:01 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,6 @@ int main(int argc, char ** argv)
 			if (FD_ISSET(socketId, &readySockets))
 			{
 				// New client connection: 
-				int currentClient = socketId;
 				if (socketId == serverSocket)
 				{
 					int clientSocket = accept(serverSocket, NULL, NULL); // Accept new client connection
@@ -124,7 +123,7 @@ int main(int argc, char ** argv)
 					if (bytesRead <= 0)
 					{
 						// Client disconnected:
-						sprintf(msgBuffer, "server: client %d just left\n", clientsIds[currentClient]); // Prepare info for the rest of the clients
+						sprintf(msgBuffer, "server: client %d just left\n", clientsIds[socketId]); // Prepare info for the rest of the clients
 						broadcast(clientSockets, socketId, connectedClients, msgBuffer); // Broadcast msg to the clients
 						close(socketId); // Close fd of the client disconnected
 						FD_CLR(socketId, &activeSockets); // Removes the client from the set of active clients
@@ -133,7 +132,7 @@ int main(int argc, char ** argv)
 					else
 					{
 						buffer[bytesRead] = '\0';
-						sprintf(msgBuffer, "client: %d: %s", clientsIds[currentClient], buffer);
+						sprintf(msgBuffer, "client: %d: %s", clientsIds[socketId], buffer);
 						broadcast(clientSockets, socketId, connectedClients, msgBuffer);
 					}
 				}
