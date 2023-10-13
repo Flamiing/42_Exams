@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/09 17:55:29 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/13 03:12:16 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,21 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 
-static void fatalError(int socket)
+static void closeSockets(int *sockets)
 {
+	int count = 0;
+	while (count < 128)
+	{
+		if (sockets[count] != -1)
+			close(sockets[count]);
+		count++;
+	}
+}
+
+static void fatalError(int socket, int *sockets)
+{
+	if (sockets != NULL)
+		closeSockets(sockets);
 	if (socket != -1)
 		close(socket);
 	write(2, "Fatal error\n", 12);
@@ -45,18 +58,18 @@ int main(int argc, char ** argv)
 	}
 
 	// Clients, fd sets and buffer declarations:
-	int clientSockets[128];
+	int clientSockets[128] = {-1};
 	int next_id = 0;
 	int connectedClients = 0;
-	int clients[132];
+	int clientsIds[132];
 	fd_set activeSockets, readySockets;
 	char buffer[200000];
-	char msgBuffer[200000];
+	char msgBuffer[200050];
 	
 	// Create server socket and setup address:
 	int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket < 0)
-		fatalError(-1);
+		fatalError(-1, NULL);
 	struct sockaddr_in serverAddress = {0}; // Structure to hold server address
 	serverAddress.sin_family = AF_INET; // Address familly to IPv4
 	serverAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // Set ip address to localhost
@@ -64,11 +77,11 @@ int main(int argc, char ** argv)
 
 	// Bind server socket to address:
 	if (bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
-		fatalError(serverSocket);
+		fatalError(serverSocket, NULL);
 
 	// Listens to upcomming connections:
 	if (listen(serverSocket, 128) < 0)
-		fatalError(serverSocket);
+		fatalError(serverSocket, NULL);
 	
 	// Initialise the active sockets set:
 	FD_ZERO(&activeSockets); // Clear set of active sockets
@@ -80,7 +93,7 @@ int main(int argc, char ** argv)
 		// Wait for activity in the sockets:
 		readySockets = activeSockets;
 		if (select(maxSocket + 1, &readySockets, NULL, NULL, NULL) < 0)
-			fatalError(-1);
+			fatalError(serverSocket, clientSockets);
 
 		// Check each socket for activity:
 		for (int socketId = 0; socketId <= maxSocket; socketId++)
@@ -93,13 +106,13 @@ int main(int argc, char ** argv)
 				{
 					int clientSocket = accept(serverSocket, NULL, NULL); // Accept new client connection
 					if (clientSocket < 0)
-						fatalError(-1);
+						fatalError(serverSocket, clientSockets);
 					
 					FD_SET(clientSocket, &activeSockets); // Add new client to the active set of sockets
 					maxSocket = (clientSocket > maxSocket) ? clientSocket : maxSocket; // Update the max socket descriptor
 
 					sprintf(msgBuffer, "server: client %d just arrived\n", next_id);
-					clients[clientSocket] = next_id;
+					clientsIds[clientSocket] = next_id;
 					clientSockets[next_id++] = clientSocket; // Add client to the list of clients
 					connectedClients++;
 					broadcast(clientSockets, clientSocket, connectedClients, msgBuffer); // Broadcast the msg to all clients
@@ -111,7 +124,7 @@ int main(int argc, char ** argv)
 					if (bytesRead <= 0)
 					{
 						// Client disconnected:
-						sprintf(msgBuffer, "server: client %d just left\n", clients[currentClient]); // Prepare info for the rest of the clients
+						sprintf(msgBuffer, "server: client %d just left\n", clientsIds[currentClient]); // Prepare info for the rest of the clients
 						broadcast(clientSockets, socketId, connectedClients, msgBuffer); // Broadcast msg to the clients
 						close(socketId); // Close fd of the client disconnected
 						FD_CLR(socketId, &activeSockets); // Removes the client from the set of active clients
@@ -120,7 +133,7 @@ int main(int argc, char ** argv)
 					else
 					{
 						buffer[bytesRead] = '\0';
-						sprintf(msgBuffer, "client: %d: %s", clients[currentClient], buffer);
+						sprintf(msgBuffer, "client: %d: %s", clientsIds[currentClient], buffer);
 						broadcast(clientSockets, socketId, connectedClients, msgBuffer);
 					}
 				}
