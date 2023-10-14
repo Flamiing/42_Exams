@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/14 14:58:00 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/14 15:30:13 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ static void broadcast(int *clientSockets, int currentClient, int size, char *buf
 	}	
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
 	// Manage wrong number of arguments:
 	if (argc != 2)
@@ -132,7 +132,7 @@ int main(int argc, char ** argv)
 					else // If is connected, the message is sended to the rest of the clients
 					{
 						buffer[bytesRead] = '\0';
-						sprintf(msgBuffer, "client: %d: %s", clientsIds[socketId], buffer);
+						sprintf(msgBuffer, "client %d: %s", clientsIds[socketId], buffer);
 						broadcast(clientSockets, socketId, connectedClients, msgBuffer);
 					}
 				}
