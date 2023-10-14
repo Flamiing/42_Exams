@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/13 14:29:01 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/14 14:58:00 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,12 @@ static void closeSockets(int *sockets)
 	}
 }
 
-static void fatalError(int socket, int *sockets)
+static void fatalError(int serverSocket, int *sockets)
 {
 	if (sockets != NULL)
 		closeSockets(sockets);
-	if (socket != -1)
-		close(socket);
+	if (serverSocket != -1)
+		close(serverSocket);
 	write(2, "Fatal error\n", 12);
 	exit(1);
 }
@@ -51,7 +51,7 @@ static void broadcast(int *clientSockets, int currentClient, int size, char *buf
 int main(int argc, char ** argv)
 {
 	// Manage wrong number of arguments:
-	if (argc == 1)
+	if (argc != 2)
 	{
 		write(2, "Wrong number of arguments\n", 26);
 		exit(1);
@@ -59,12 +59,12 @@ int main(int argc, char ** argv)
 
 	// Clients, fd sets and buffer declarations:
 	int clientSockets[128] = {-1};
-	int next_id = 0;
-	int connectedClients = 0;
-	int clientsIds[132];
+	int next_id = 0; // Keeps track of the next id for the next client
+	int connectedClients = 0; // Keeps track of the connected clients to the server
+	int clientsIds[132]; // 132 to leave space for the first 3FDs: 0, 1, 2
 	fd_set activeSockets, readySockets;
-	char buffer[200000];
-	char msgBuffer[200050];
+	char buffer[200000]; // Buffer to read with recv
+	char msgBuffer[200050]; // Buffer to save and send the msg
 	
 	// Create server socket and setup address:
 	int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -93,7 +93,7 @@ int main(int argc, char ** argv)
 		// Wait for activity in the sockets:
 		readySockets = activeSockets;
 		if (select(maxSocket + 1, &readySockets, NULL, NULL, NULL) < 0)
-			fatalError(serverSocket, clientSockets);
+			continue;
 
 		// Check each socket for activity:
 		for (int socketId = 0; socketId <= maxSocket; socketId++)
@@ -111,16 +111,16 @@ int main(int argc, char ** argv)
 					maxSocket = (clientSocket > maxSocket) ? clientSocket : maxSocket; // Update the max socket descriptor
 
 					sprintf(msgBuffer, "server: client %d just arrived\n", next_id);
-					clientsIds[clientSocket] = next_id;
+					clientsIds[clientSocket] = next_id; // Map like array to save (key: client socket, value: current id)
 					clientSockets[next_id++] = clientSocket; // Add client to the list of clients
 					connectedClients++;
 					broadcast(clientSockets, clientSocket, connectedClients, msgBuffer); // Broadcast the msg to all clients
 				}
 				else
 				{
-					int bytesRead = recv(socketId, buffer, sizeof(buffer) - 1, 0);
+					int bytesRead = recv(socketId, buffer, sizeof(buffer) - 1, 0); // Reads the msg sended by the client
 					
-					if (bytesRead <= 0)
+					if (bytesRead <= 0) // Checks if the client is still connected
 					{
 						// Client disconnected:
 						sprintf(msgBuffer, "server: client %d just left\n", clientsIds[socketId]); // Prepare info for the rest of the clients
@@ -129,7 +129,7 @@ int main(int argc, char ** argv)
 						FD_CLR(socketId, &activeSockets); // Removes the client from the set of active clients
 						connectedClients--;
 					}
-					else
+					else // If is connected, the message is sended to the rest of the clients
 					{
 						buffer[bytesRead] = '\0';
 						sprintf(msgBuffer, "client: %d: %s", clientsIds[socketId], buffer);
