@@ -9,7 +9,7 @@
 static void closeSockets(int *sockets)
 {
 	int count = 0;
-	while (count < 128)
+	while (count < 4000)
 	{
 		if (sockets[count] != -1)
 			close(sockets[count]);
@@ -27,9 +27,9 @@ static void fatalError(int serverSocket, int *sockets)
 	exit(1);
 }
 
-static void broadcast(int *clientSockets, int currentClient, int size, char *buffer)
+static void broadcast(int *clientSockets, int currentClient, char *buffer)
 {
-	for (int count = 0; count < size; count++)
+	for (int count = 0; count < 4000; count++)
 	{
 		if (clientSockets[count] != currentClient)
 			send(clientSockets[count], buffer, strlen(buffer), 0);
@@ -44,10 +44,9 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	int clientSockets[128] = {-1};
+	int clientSockets[4000] = {-1};
 	int next_id = 0;
-	int connectedClients = 0;
-	int clientsIds[132];
+	int clientsIds[4003];
 	fd_set activeSockets, readySockets;
 	char buffer[200000];
 	char msgBuffer[200050];
@@ -91,8 +90,7 @@ int main(int argc, char **argv)
 					sprintf(msgBuffer, "server: client %d just arrived\n", next_id);
 					clientsIds[clientSocket] = next_id;
 					clientSockets[next_id++] = clientSocket;
-					connectedClients++;
-					broadcast(clientSockets, clientSocket, connectedClients, msgBuffer);
+					broadcast(clientSockets, clientSocket, msgBuffer);
 				}
 				else
 				{
@@ -101,16 +99,15 @@ int main(int argc, char **argv)
 					if (bytesRead <= 0)
 					{
 						sprintf(msgBuffer, "server: client %d just left\n", clientsIds[socketId]);
-						broadcast(clientSockets, socketId, connectedClients, msgBuffer);
+						broadcast(clientSockets, socketId, msgBuffer);
 						close(socketId);
 						FD_CLR(socketId, &activeSockets);
-						connectedClients--;
 					}
 					else
 					{
 						buffer[bytesRead] = '\0';
 						sprintf(msgBuffer, "client %d: %s", clientsIds[socketId], buffer);
-						broadcast(clientSockets, socketId, connectedClients, msgBuffer);
+						broadcast(clientSockets, socketId, msgBuffer);
 					}
 				}
 			}

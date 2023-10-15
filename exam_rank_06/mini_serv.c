@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/14 15:30:13 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/15 17:34:59 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 static void closeSockets(int *sockets)
 {
 	int count = 0;
-	while (count < 128)
+	while (count < 4000)
 	{
 		if (sockets[count] != -1)
 			close(sockets[count]);
@@ -39,11 +39,11 @@ static void fatalError(int serverSocket, int *sockets)
 	exit(1);
 }
 
-static void broadcast(int *clientSockets, int currentClient, int size, char *buffer)
+static void broadcast(int *clientSockets, int currentClient, char *buffer)
 {
-	for (int count = 0; count < size; count++) 
+	for (int count = 0; count < 4000; count++)
 	{
-		if (clientSockets[count] != currentClient)
+		if (clientSockets[count] != currentClient && clientSockets[count] != -1)
 			send(clientSockets[count], buffer, strlen(buffer), 0);
 	}	
 }
@@ -58,10 +58,9 @@ int main(int argc, char **argv)
 	}
 
 	// Clients, fd sets and buffer declarations:
-	int clientSockets[128] = {-1};
+	int clientSockets[4000] = {-1};
 	int next_id = 0; // Keeps track of the next id for the next client
-	int connectedClients = 0; // Keeps track of the connected clients to the server
-	int clientsIds[132]; // 132 to leave space for the first 3FDs: 0, 1, 2
+	int clientsIds[4003]; // 132 to leave space for the first 3FDs: 0, 1, 2
 	fd_set activeSockets, readySockets;
 	char buffer[200000]; // Buffer to read with recv
 	char msgBuffer[200050]; // Buffer to save and send the msg
@@ -113,8 +112,7 @@ int main(int argc, char **argv)
 					sprintf(msgBuffer, "server: client %d just arrived\n", next_id);
 					clientsIds[clientSocket] = next_id; // Map like array to save (key: client socket, value: current id)
 					clientSockets[next_id++] = clientSocket; // Add client to the list of clients
-					connectedClients++;
-					broadcast(clientSockets, clientSocket, connectedClients, msgBuffer); // Broadcast the msg to all clients
+					broadcast(clientSockets, clientSocket, msgBuffer); // Broadcast the msg to all clients
 				}
 				else
 				{
@@ -124,16 +122,16 @@ int main(int argc, char **argv)
 					{
 						// Client disconnected:
 						sprintf(msgBuffer, "server: client %d just left\n", clientsIds[socketId]); // Prepare info for the rest of the clients
-						broadcast(clientSockets, socketId, connectedClients, msgBuffer); // Broadcast msg to the clients
+						broadcast(clientSockets, socketId, msgBuffer); // Broadcast msg to the clients
 						close(socketId); // Close fd of the client disconnected
 						FD_CLR(socketId, &activeSockets); // Removes the client from the set of active clients
-						connectedClients--;
+						clientSockets[clientsIds[socketId]] = -1;
 					}
 					else // If is connected, the message is sended to the rest of the clients
 					{
 						buffer[bytesRead] = '\0';
 						sprintf(msgBuffer, "client %d: %s", clientsIds[socketId], buffer);
-						broadcast(clientSockets, socketId, connectedClients, msgBuffer);
+						broadcast(clientSockets, socketId, msgBuffer);
 					}
 				}
 			}
