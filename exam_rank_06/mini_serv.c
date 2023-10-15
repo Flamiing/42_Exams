@@ -6,14 +6,14 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/15 17:34:59 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/15 19:25:24 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <string.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
@@ -45,7 +45,7 @@ static void broadcast(int *clientSockets, int currentClient, char *buffer)
 	{
 		if (clientSockets[count] != currentClient && clientSockets[count] != -1)
 			send(clientSockets[count], buffer, strlen(buffer), 0);
-	}	
+	}
 }
 
 int main(int argc, char **argv)
@@ -60,11 +60,11 @@ int main(int argc, char **argv)
 	// Clients, fd sets and buffer declarations:
 	int clientSockets[4000] = {-1};
 	int next_id = 0; // Keeps track of the next id for the next client
-	int clientsIds[4003]; // 132 to leave space for the first 3FDs: 0, 1, 2
+	int clientsIds[4003]; // 4003 to leave space for the first 3FDs: 0, 1, 2
 	fd_set activeSockets, readySockets;
 	char buffer[200000]; // Buffer to read with recv
 	char msgBuffer[200050]; // Buffer to save and send the msg
-	
+
 	// Create server socket and setup address:
 	int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocket < 0)
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 	// Listens to upcomming connections:
 	if (listen(serverSocket, 128) < 0)
 		fatalError(serverSocket, NULL);
-	
+
 	// Initialise the active sockets set:
 	FD_ZERO(&activeSockets); // Clear set of active sockets
 	FD_SET(serverSocket, &activeSockets); // Add server socket to the set
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 					int clientSocket = accept(serverSocket, NULL, NULL); // Accept new client connection
 					if (clientSocket < 0)
 						fatalError(serverSocket, clientSockets);
-					
+
 					FD_SET(clientSocket, &activeSockets); // Add new client to the active set of sockets
 					maxSocket = (clientSocket > maxSocket) ? clientSocket : maxSocket; // Update the max socket descriptor
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 				else
 				{
 					int bytesRead = recv(socketId, buffer, sizeof(buffer) - 1, 0); // Reads the msg sended by the client
-					
+
 					if (bytesRead <= 0) // Checks if the client is still connected
 					{
 						// Client disconnected:

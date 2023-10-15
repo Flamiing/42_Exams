@@ -31,7 +31,7 @@ static void broadcast(int *clientSockets, int currentClient, char *buffer)
 {
 	for (int count = 0; count < 4000; count++)
 	{
-		if (clientSockets[count] != currentClient)
+		if (clientSockets[count] != currentClient && clientSockets[count] != -1)
 			send(clientSockets[count], buffer, strlen(buffer), 0);
 	}
 }
@@ -102,6 +102,7 @@ int main(int argc, char **argv)
 						broadcast(clientSockets, socketId, msgBuffer);
 						close(socketId);
 						FD_CLR(socketId, &activeSockets);
+						clientSockets[clientsIds[socketId]] = -1;
 					}
 					else
 					{
