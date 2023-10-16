@@ -36,7 +36,7 @@ static void broadcast(int *clientSockets, int currentClient, char *buffer)
 	}
 }
 
-static void sendMsg(char *buffer, int bytesRead, int socketId, int *clientSockets, int id)
+static void sendMsg(char *buffer, int bytesRead, int *clientSockets, int socketId, int id)
 {
 	char msg[200050];
 	char temp[200050];
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 						clientSockets[clientsIds[socketId]] = -1;
 					}
 					else
-						sendMsg(buffer, bytesRead, socketId, clientSockets, clientsIds[socketId]);
+						sendMsg(buffer, bytesRead, clientSockets, socketId, clientsIds[socketId]);
 				}
 			}
 		}

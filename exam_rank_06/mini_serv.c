@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/16 03:58:19 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/16 04:03:29 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ static void broadcast(int *clientSockets, int currentClient, char *buffer)
 	}
 }
 
-static void sendMsg(char *buffer, int bytesRead, int socketId, int *clientSockets, int id)
+static void sendMsg(char *buffer, int bytesRead, int *clientSockets, int socketId, int id)
 {
 	char msg[200050];
 	char temp[200050];
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 						clientSockets[clientsIds[socketId]] = -1;
 					}
 					else // If is connected, the message is sended to the rest of the clients
-						sendMsg(buffer, bytesRead, socketId, clientSockets, clientsIds[socketId]);
+						sendMsg(buffer, bytesRead, clientSockets, socketId, clientsIds[socketId]);
 				}
 			}
 		}
