@@ -36,6 +36,28 @@ static void broadcast(int *clientSockets, int currentClient, char *buffer)
 	}
 }
 
+static void sendMsg(char *buffer, int bytesRead, int socketId, int *clientSockets, int id)
+{
+	char msg[200050];
+	char temp[200050];
+	int count = 0;
+	int pos = 0;
+
+	while (count < bytesRead)
+	{
+		temp[pos] = buffer[count];
+		if (temp[pos] == '\n')
+		{
+			temp[pos + 1] = '\0';
+			sprintf(msg, "client %d: %s", id, temp);
+			broadcast(clientSockets, socketId, msg);
+			pos = 0;
+		}
+		pos++;
+		count++;
+	}
+}
+
 int main(int argc, char **argv)
 {
 	if (argc != 2)
@@ -105,11 +127,7 @@ int main(int argc, char **argv)
 						clientSockets[clientsIds[socketId]] = -1;
 					}
 					else
-					{
-						buffer[bytesRead] = '\0';
-						sprintf(msgBuffer, "client %d: %s", clientsIds[socketId], buffer);
-						broadcast(clientSockets, socketId, msgBuffer);
-					}
+						sendMsg(buffer, bytesRead, socketId, clientSockets, clientsIds[socketId]);
 				}
 			}
 		}

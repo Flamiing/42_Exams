@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/15 19:25:24 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/16 03:58:19 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,28 @@ static void broadcast(int *clientSockets, int currentClient, char *buffer)
 	{
 		if (clientSockets[count] != currentClient && clientSockets[count] != -1)
 			send(clientSockets[count], buffer, strlen(buffer), 0);
+	}
+}
+
+static void sendMsg(char *buffer, int bytesRead, int socketId, int *clientSockets, int id)
+{
+	char msg[200050];
+	char temp[200050];
+	int count = 0;
+	int pos = 0;
+
+	while (count < bytesRead)
+	{
+		temp[pos] = buffer[count];
+		if (temp[pos] == '\n')
+		{
+			temp[pos + 1] = '\0';
+			sprintf(msg, "client %d: %s", id, temp);
+			broadcast(clientSockets, socketId, msg);
+			pos = 0;
+		}
+		pos++;
+		count++;
 	}
 }
 
@@ -128,11 +150,7 @@ int main(int argc, char **argv)
 						clientSockets[clientsIds[socketId]] = -1;
 					}
 					else // If is connected, the message is sended to the rest of the clients
-					{
-						buffer[bytesRead] = '\0';
-						sprintf(msgBuffer, "client %d: %s", clientsIds[socketId], buffer);
-						broadcast(clientSockets, socketId, msgBuffer);
-					}
+						sendMsg(buffer, bytesRead, socketId, clientSockets, clientsIds[socketId]);
 				}
 			}
 		}
