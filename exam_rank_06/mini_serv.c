@@ -6,7 +6,7 @@
 /*   By: alaaouam <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 12:58:38 by alaaouam          #+#    #+#             */
-/*   Updated: 2023/10/16 04:03:29 by alaaouam         ###   ########.fr       */
+/*   Updated: 2023/10/19 22:55:21 by alaaouam         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,16 +57,17 @@ static void sendMsg(char *buffer, int bytesRead, int *clientSockets, int socketI
 
 	while (count < bytesRead)
 	{
-		temp[pos] = buffer[count];
-		if (temp[pos] == '\n')
+		pos = 0;
+		while (buffer[count] && buffer[count] != '\n')
 		{
-			temp[pos + 1] = '\0';
-			sprintf(msg, "client %d: %s", id, temp);
-			broadcast(clientSockets, socketId, msg);
-			pos = 0;
+			temp[pos] = buffer[count];
+			pos++;
+			count++;
 		}
-		pos++;
 		count++;
+		temp[pos] = '\0';
+		sprintf(msg, "client %d: %s\n", id, temp);
+		broadcast(clientSockets, socketId, msg);
 	}
 }
 
